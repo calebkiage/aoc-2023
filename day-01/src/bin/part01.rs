@@ -3,7 +3,7 @@ use std::time::Instant;
 fn main() {
     let start = Instant::now();
     // Assume ASCII text
-    let input = include_bytes!("input.txt");
+    let input = include_bytes!("../../data/input.txt");
     let result: usize = input
         // 51600ns
         .split(|b| b == &b'\n')

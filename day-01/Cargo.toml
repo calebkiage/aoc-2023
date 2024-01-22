@@ -5,4 +5,11 @@ edition = "2021"
 
 publish = false
 
+[[bin]]
+name = "part01"
+
+[[bin]]
+name = "part02"
+
 [dependencies]
+aho-corasick = { workspace = true }

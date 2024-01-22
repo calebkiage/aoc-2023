@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+
+members = ["day-01"]
+
+[workspace.dependencies]
+bytes = "1.5"
+rayon = "1.8"

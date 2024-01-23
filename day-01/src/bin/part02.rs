@@ -7,6 +7,9 @@ fn main() {
     let input = include_bytes!("../../data/input.txt");
     let result: usize = input
         // 217194700ns
+        // 70038700ns
+        // 100163400ns
+        // 63643900ns
         .split(|b| b == &b'\n')
         .filter_map(find_num_pair_in_line)
         .sum();
@@ -24,63 +27,45 @@ const DIGITS: &[&[u8]] = [
     b"seven".as_slice(),
     b"eight".as_slice(),
     b"nine".as_slice(),
+    b"0".as_slice(),
+    b"1".as_slice(),
+    b"2".as_slice(),
+    b"3".as_slice(),
+    b"4".as_slice(),
+    b"5".as_slice(),
+    b"6".as_slice(),
+    b"7".as_slice(),
+    b"8".as_slice(),
+    b"9".as_slice(),
 ]
 .as_slice();
 
 #[inline]
-fn find_first_digit_in_line(line: &[u8]) -> Option<u8> {
+fn find_first_and_last_digit_in_line(line: &[u8]) -> Option<(u8, u8)> {
     let ac = AhoCorasick::builder().build(DIGITS).unwrap();
-    let m = ac
-        .try_find(line)
+    ac.try_find_iter(line)
+        .map(|mut f| {
+            let next = f.next();
+            let last = f.last().or(next);
+            if let (Some(f), Some(l)) = (next, last) {
+                Some((f, l))
+            } else {
+                None
+            }
+        })
         .ok()
         .flatten()
-        .map(|m| (m.start(), m.pattern().as_u32() as u8));
-    let found = line.iter().enumerate().find(|(_, b)| b.is_ascii_digit());
-
-    match (m, found) {
-        (Some((ia, a)), Some((ib, b))) => {
-            if ia < ib {
-                Some(a)
-            } else {
-                Some(ascii_digit_to_num(*b))
-            }
-        }
-        (Some((_, a)), None) => Some(a),
-        (None, Some((_, b))) => Some(ascii_digit_to_num(*b)),
-        (None, None) => None,
-    }
+        .map(|(m0, m1)| {
+            (
+                (m0.pattern().as_u32() % 10) as u8,
+                (m1.pattern().as_u32() % 10) as u8,
+            )
+        })
 }
 
 #[inline]
-fn find_last_digit_in_line(line: &[u8]) -> Option<u8> {
-    let ac = AhoCorasick::builder().build(DIGITS).unwrap();
-    let m = ac
-        .try_find_iter(line)
-        .map(|f| f.last())
-        .ok()
-        .flatten()
-        .map(|m| (m.start(), m.pattern().as_u32() as u8));
-    let found = line.iter().enumerate().rfind(|(_, b)| b.is_ascii_digit());
-
-    match (m, found) {
-        (Some((ia, a)), Some((ib, b))) => {
-            if ia < ib {
-                Some(ascii_digit_to_num(*b))
-            } else {
-                Some(a)
-            }
-        }
-        (Some((_, a)), None) => Some(a),
-        (None, Some((_, b))) => Some(ascii_digit_to_num(*b)),
-        (None, None) => None,
-    }
-}
-
 fn find_num_pair_in_line(line: &[u8]) -> Option<usize> {
-    if let (Some(l), Some(r)) = (
-        find_first_digit_in_line(line),
-        find_last_digit_in_line(line),
-    ) {
+    if let Some((l, r)) = find_first_and_last_digit_in_line(line) {
         let ones = (r) as usize;
         let tens = (l * 10) as usize;
         let num = tens + ones;
@@ -88,12 +73,6 @@ fn find_num_pair_in_line(line: &[u8]) -> Option<usize> {
     } else {
         None
     }
-}
-
-#[inline]
-fn ascii_digit_to_num(digit: u8) -> u8 {
-    debug_assert!(digit.is_ascii_digit());
-    digit - b'0'
 }
 
 #[cfg(test)]
@@ -130,22 +109,16 @@ mod tests {
     #[test]
     fn test_find_digit_in_line_works_with_words() {
         let data = b"two1nine";
-        let res = find_first_digit_in_line(data);
-        assert_eq!(res, Some(2));
-        let res = find_last_digit_in_line(data);
-        assert_eq!(res, Some(9));
+        let res = find_first_and_last_digit_in_line(data);
+        assert_eq!(res, Some((2, 9)));
         let data = b"no_num";
-        let res = find_first_digit_in_line(data);
-        assert_eq!(res, None);
-        let res = find_last_digit_in_line(data);
+        let res = find_first_and_last_digit_in_line(data);
         assert_eq!(res, None);
     }
     #[test]
     fn test_find_digit_in_line_works_with_numbers() {
         let data = b"x1zero";
-        let res = find_first_digit_in_line(data);
-        assert_eq!(res, Some(1));
-        let res = find_last_digit_in_line(data);
-        assert_eq!(res, Some(0));
+        let res = find_first_and_last_digit_in_line(data);
+        assert_eq!(res, Some((1, 0)));
     }
 }

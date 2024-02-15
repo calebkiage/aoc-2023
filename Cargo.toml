@@ -6,4 +6,5 @@ members = ["day-01"]
 [workspace.dependencies]
 aho-corasick = "1.1"
 bytes = "1.5"
+memchr = { version = "2.7", default-features = false }
 rayon = "1.8"

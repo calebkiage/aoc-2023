@@ -6,3 +6,4 @@ edition = "2021"
 publish = false
 
 [dependencies]
+memchr.workspace = true

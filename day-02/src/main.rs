@@ -1,6 +1,6 @@
-mod parser;
-
 use std::{borrow::Cow, io::BufRead as _};
+
+use day_02::process_games;
 
 fn main() {
     let input = include_bytes!("../data/input.txt");
@@ -15,7 +15,7 @@ fn sum_possible_game_ids(
     blues: u64,
 ) -> Result<u64, Cow<'static, str>> {
     let mut sum_ids = 0;
-    possible_games(
+    process_games(
         input.lines(),
         |g| {
             for (r, g, b) in &g.handfuls {
@@ -28,26 +28,6 @@ fn sum_possible_game_ids(
         |g| sum_ids += g.id,
     )?;
     Ok(sum_ids)
-}
-
-fn possible_games<'a, F: Fn(&parser::Game) -> bool, F2: FnMut(&parser::Game)>(
-    lines: std::io::Lines<impl std::io::BufRead>,
-    predicate: F,
-    mut operation: F2,
-) -> Result<(), Cow<'static, str>> {
-    for line in lines.filter(|l| match l {
-        Ok(l) => !l.trim().is_empty(),
-        Err(_) => true,
-    }) {
-        let line = line.map_err(|e| Cow::Owned(format!("could not read line: {e}")))?;
-        let (_, game) = parser::parse_line(line.trim().as_bytes())
-            .map_err(|_| Cow::Borrowed("could not parse line"))?;
-        if predicate(&game) {
-            operation(&game)
-        }
-    }
-
-    Ok(())
 }
 
 #[cfg(test)]

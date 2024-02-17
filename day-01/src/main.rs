@@ -23,13 +23,21 @@ fn find_first_and_last_digit_in_line(line: &[u8]) -> Option<(u8, u8)> {
     let first = DIGITS
         .iter()
         .enumerate()
-        .filter_map(|(i, d)| memchr::memmem::find_iter(line, *d).next().map(|start| ((i % 10) as u8, start)))
+        .filter_map(|(i, d)| {
+            memchr::memmem::find_iter(line, *d)
+                .next()
+                .map(|start| ((i % 10) as u8, start))
+        })
         .min_by_key(|(_, start)| *start)
         .map(|(i, _)| i);
     let last = DIGITS
         .iter()
         .enumerate()
-        .filter_map(|(i, d)| memchr::memmem::rfind_iter(line, *d).next().map(|start| ((i % 10) as u8, start)))
+        .filter_map(|(i, d)| {
+            memchr::memmem::rfind_iter(line, *d)
+                .next()
+                .map(|start| ((i % 10) as u8, start))
+        })
         .max_by_key(|(_, start)| *start)
         .map(|(i, _)| i);
     if let (Some(a), Some(b)) = (first, last) {
